@@ -5,7 +5,7 @@ import {
 import {Chat} from "@ai-sdk/react";
 import {http, HttpResponse} from "msw";
 import {z} from 'zod';
-// import mermaid from '@/assets/mermaid.json'
+import mermaid from '@/assets/mermaid.json'
 
 const encoder = new TextEncoder();
 
@@ -19,15 +19,31 @@ export type AppUIMessage = UIMessage<
     }
 >;
 
-const stubSSE = http.get('http://example.com/stream', () => {
+const stubSSE = http.post('http://example.com/stream', d => {
     async function sendEvent(controller: ReadableStreamDefaultController, data: z.infer<typeof uiMessageChunkSchema> | "[DONE]") {
         await new Promise(resolve => setTimeout(resolve, 80))
         controller.enqueue(encoder.encode(`event:app\ndata:${typeof data === 'string' ? data : JSON.stringify(data)}\n\n`));
         if (data === "[DONE]") controller.close();
     }
 
+    const req = new Response(d.request.body)
+
     const stream = new ReadableStream({
         async start(c) {
+            const request = await req.json()
+            if (request.messages[request.messages.length - 1].role !== "user") {
+                await sendEvent(c, "[DONE]") // terminate sse
+                return;
+            }
+
+            const msg: string = request.messages[request.messages.length - 1].parts.filter((p: {
+                type: 'text'
+            }) => p.type === 'text')[0]?.text
+            if (!msg) {
+                await sendEvent(c, "[DONE]") // terminate sse
+                return;
+            }
+
             await sendEvent(c, {type: "start"})
 
             await sendEvent(c, {type: "start-step"})
@@ -52,28 +68,37 @@ const stubSSE = http.get('http://example.com/stream', () => {
                 url: "https://github.com/kmhalvin"
             })
 
-            await sendEvent(c, {type: "text-start", id: "txt-id-123"})
-            await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "#"})
-            await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " 👋"})
-            await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "\n\n"})
-            await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "**"})
-            await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "hello"})
-            await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "!"})
-            await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "**"})
-            await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: ","})
-            await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " this"})
-            await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " is"})
-            await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " ai"})
-            await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " sdk"})
-            await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " playground"})
-            await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "!"})
-            await sendEvent(c, {type: "text-end", id: "txt-id-123"})
-
-            // await sendEvent(c, {type: "text-start", id: "txt-id-123"})
-            // for (const m of mermaid) {
-            //     await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: m})
-            // }
-            // await sendEvent(c, {type: "text-end", id: "txt-id-123"})
+            if (msg.includes("mermaid")) {
+                await sendEvent(c, {type: "text-start", id: "txt-id-123"})
+                for (const m of mermaid) {
+                    await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: m})
+                }
+                await sendEvent(c, {type: "text-end", id: "txt-id-123"})
+            } else {
+                await sendEvent(c, {type: "text-start", id: "txt-id-123"})
+                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "#"})
+                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " 👋"})
+                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "\n\n"})
+                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "**"})
+                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "hello"})
+                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "!"})
+                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "**"})
+                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: ","})
+                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " this"})
+                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " is"})
+                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " ai"})
+                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " sdk"})
+                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " playground"})
+                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "!"})
+                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "\n\n"})
+                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "say"})
+                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " **"})
+                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "mer"})
+                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "maid"})
+                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "**"})
+                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "."})
+                await sendEvent(c, {type: "text-end", id: "txt-id-123"})
+            }
 
             await sendEvent(c, {type: "finish-step"})
 
@@ -96,14 +121,14 @@ const stubSSE = http.get('http://example.com/stream', () => {
 const chatPlayground = new Chat<AppUIMessage>({
     transport: new DefaultChatTransport({
         api: "http://example.com/stream",
-        async fetch(url) {
+        async fetch(url, i) {
             // if (refreshCount++ < 2) {
             //     await new Promise(resolve => setTimeout(resolve, 1000));
             //     throw new Error("Failed to fetch")
             // }
-            const response = (await stubSSE.run({request: new Request(url), requestId: "id"}))?.response;
+            const response = (await stubSSE.run({request: new Request(url, i), requestId: "id"}))?.response;
             if (!response)
-                throw new Error("response undefined")
+                throw new Error("response: " + response)
             return response
         }
     })
