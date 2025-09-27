@@ -95,7 +95,7 @@ function AppPrompt() {
                 />
             </PromptInputBody>
             <PromptInputToolbar>
-                <PromptInputTools>
+                <PromptInputTools className='flex-initial min-w-0 overflow-x-auto'>
                     <PromptInputActionMenu>
                         <PromptInputActionMenuTrigger/>
                         <PromptInputActionMenuContent>
@@ -133,7 +133,7 @@ function AppPrompt() {
                         </ContextContent>
                     </Context>
                 </PromptInputTools>
-                <PromptInputSubmit disabled={!input && !status} status={status}/>
+                <PromptInputSubmit className='flex-none' disabled={!input && !status} status={status}/>
             </PromptInputToolbar>
         </PromptInput>
     </div>
