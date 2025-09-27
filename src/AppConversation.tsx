@@ -54,12 +54,12 @@ function AppConversation() {
                                     </Message>
                                     {message.role === 'assistant' && msgIdx === messages.length - 1 && (
                                         <Actions className="mt-2">
-                                            <Action
-                                                onClick={() => regenerate()}
-                                                label="Retry"
+                                            {status === 'ready' && <Action
+                                              onClick={() => regenerate()}
+                                              label="Retry"
                                             >
-                                                <RefreshCcwIcon className="size-3"/>
-                                            </Action>
+                                              <RefreshCcwIcon className="size-3"/>
+                                            </Action>}
                                             <Action
                                                 onClick={() =>
                                                     navigator.clipboard.writeText(part.text)
