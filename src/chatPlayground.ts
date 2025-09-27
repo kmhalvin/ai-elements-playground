@@ -20,102 +20,120 @@ export type AppUIMessage = UIMessage<
 >;
 
 const stubSSE = http.post('http://example.com/stream', d => {
-    async function sendEvent(controller: ReadableStreamDefaultController, data: z.infer<typeof uiMessageChunkSchema> | "[DONE]") {
-        await new Promise(resolve => setTimeout(resolve, 80))
-        controller.enqueue(encoder.encode(`event:app\ndata:${typeof data === 'string' ? data : JSON.stringify(data)}\n\n`));
-        if (data === "[DONE]") controller.close();
-    }
+        async function sendEvent(controller: ReadableStreamDefaultController, data: z.infer<typeof uiMessageChunkSchema> | "[DONE]") {
+            await new Promise(resolve => setTimeout(resolve, 80))
+            controller.enqueue(encoder.encode(`event:app\ndata:${typeof data === 'string' ? data : JSON.stringify(data)}\n\n`));
+            if (data === "[DONE]") controller.close();
+        }
 
-    const req = new Response(d.request.body)
+        const req = new Response(d.request.body)
 
-    const stream = new ReadableStream({
-        async start(c) {
-            const request = await req.json()
-            if (request.messages[request.messages.length - 1].role !== "user") {
-                await sendEvent(c, "[DONE]") // terminate sse
-                return;
-            }
+        const stream = new ReadableStream({
+            async start(c) {
+                const request = await req.json()
+                if (request.messages[request.messages.length - 1].role !== "user") {
+                    await sendEvent(c, "[DONE]") // terminate sse
+                    return;
+                }
 
-            const msg: string = request.messages[request.messages.length - 1].parts.filter((p: {
-                type: 'text'
-            }) => p.type === 'text')[0]?.text
-            if (!msg) {
-                await sendEvent(c, "[DONE]") // terminate sse
-                return;
-            }
+                const msg: string = request.messages[request.messages.length - 1].parts.filter((p: {
+                    type: 'text'
+                }) => p.type === 'text')[0]?.text
+                if (!msg) {
+                    await sendEvent(c, "[DONE]") // terminate sse
+                    return;
+                }
 
-            await sendEvent(c, {type: "start"})
+                await sendEvent(c, {type: "start"})
 
-            await sendEvent(c, {type: "start-step"})
+                await sendEvent(c, {type: "start-step"})
 
-            await sendEvent(c, {type: "reasoning-start", id: "reason-id-123"})
-            await sendEvent(c, {type: "reasoning-delta", id: "reason-id-123", delta: "the"})
-            await sendEvent(c, {type: "reasoning-delta", id: "reason-id-123", delta: " **"})
-            await sendEvent(c, {type: "reasoning-delta", id: "reason-id-123", delta: "owner"})
-            await sendEvent(c, {type: "reasoning-delta", id: "reason-id-123", delta: "**"})
-            await sendEvent(c, {type: "reasoning-delta", id: "reason-id-123", delta: " wants"})
-            await sendEvent(c, {type: "reasoning-delta", id: "reason-id-123", delta: " me"})
-            await sendEvent(c, {type: "reasoning-delta", id: "reason-id-123", delta: " to"})
-            await sendEvent(c, {type: "reasoning-delta", id: "reason-id-123", delta: " greet"})
-            await sendEvent(c, {type: "reasoning-delta", id: "reason-id-123", delta: " the"})
-            await sendEvent(c, {type: "reasoning-delta", id: "reason-id-123", delta: " user"})
-            await sendEvent(c, {type: "reasoning-delta", id: "reason-id-123", delta: "."})
-            await sendEvent(c, {type: "reasoning-end", id: "reason-id-123"})
+                await sendEvent(c, {type: "reasoning-start", id: "reason-id-123"})
+                await sendEvent(c, {type: "reasoning-delta", id: "reason-id-123", delta: "the"})
+                await sendEvent(c, {type: "reasoning-delta", id: "reason-id-123", delta: " **"})
+                await sendEvent(c, {type: "reasoning-delta", id: "reason-id-123", delta: "owner"})
+                await sendEvent(c, {type: "reasoning-delta", id: "reason-id-123", delta: "**"})
+                await sendEvent(c, {type: "reasoning-delta", id: "reason-id-123", delta: " wants"})
+                await sendEvent(c, {type: "reasoning-delta", id: "reason-id-123", delta: " me"})
+                await sendEvent(c, {type: "reasoning-delta", id: "reason-id-123", delta: " to"})
+                await sendEvent(c, {type: "reasoning-delta", id: "reason-id-123", delta: " answer"})
+                await sendEvent(c, {type: "reasoning-delta", id: "reason-id-123", delta: " the"})
+                await sendEvent(c, {type: "reasoning-delta", id: "reason-id-123", delta: " user"})
+                await sendEvent(c, {type: "reasoning-delta", id: "reason-id-123", delta: "."})
+                await sendEvent(c, {type: "reasoning-end", id: "reason-id-123"})
 
-            await sendEvent(c, {
-                type: "source-url",
-                sourceId: "https://github.com/kmhalvin",
-                url: "https://github.com/kmhalvin"
-            })
+                await sendEvent(c, {
+                    type: "source-url",
+                    sourceId: "https://github.com/kmhalvin",
+                    url: "https://github.com/kmhalvin"
+                })
 
-            if (msg.includes("mermaid")) {
                 await sendEvent(c, {type: "text-start", id: "txt-id-123"})
-                for (const m of mermaid) {
-                    await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: m})
+                switch (msg) {
+                    case "do mermaid": {
+                        await sendEvent(c, {
+                            type: "source-url",
+                            sourceId: "https://github.com/rudolfolah/mermaid-diagram-examples/blob/main/diagrams/cause-and-effect.md",
+                            url: "https://github.com/rudolfolah/mermaid-diagram-examples/blob/main/diagrams/cause-and-effect.md"
+                        })
+                        for (const m of mermaid) {
+                            await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: m})
+                        }
+                        break;
+                    }
+                    default: {
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "#"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " 👋"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "\n\n"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "**"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "hello"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "!"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "**"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: ","})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " this"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " is"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " ai"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " sdk"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " playground"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "!"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "\n\n"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "try"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " these"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " commands"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: ":"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "\n"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "-"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " \""})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "**"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "do"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " mer"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "maid"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "**"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "\""})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "\n"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "-"})
+                        break;
+                    }
                 }
                 await sendEvent(c, {type: "text-end", id: "txt-id-123"})
-            } else {
-                await sendEvent(c, {type: "text-start", id: "txt-id-123"})
-                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "#"})
-                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " 👋"})
-                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "\n\n"})
-                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "**"})
-                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "hello"})
-                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "!"})
-                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "**"})
-                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: ","})
-                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " this"})
-                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " is"})
-                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " ai"})
-                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " sdk"})
-                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " playground"})
-                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "!"})
-                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "\n\n"})
-                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "say"})
-                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " **"})
-                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "mer"})
-                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "maid"})
-                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "**"})
-                await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "."})
-                await sendEvent(c, {type: "text-end", id: "txt-id-123"})
+
+                await sendEvent(c, {type: "finish-step"})
+
+                await sendEvent(c, {type: "finish"})
+
+                await sendEvent(c, {type: "data-token", data: {window: 132000, used: 8000}})
+
+                await sendEvent(c, "[DONE]") // terminate sse
             }
+        });
 
-            await sendEvent(c, {type: "finish-step"})
-
-            await sendEvent(c, {type: "finish"})
-
-            await sendEvent(c, {type: "data-token", data: {window: 132000, used: 8000}})
-
-            await sendEvent(c, "[DONE]") // terminate sse
-        },
-    });
-
-    return new HttpResponse(stream, {
-        headers: {
-            "Content-Type": "text/event-stream",
-        }
-    });
-});
+        return new HttpResponse(stream, {
+            headers: {
+                "Content-Type": "text/event-stream",
+            }
+        });
+    })
+;
 
 // let refreshCount = 0
 const chatPlayground = new Chat<AppUIMessage>({
