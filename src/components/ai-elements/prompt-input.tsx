@@ -30,7 +30,7 @@ import { nanoid } from "nanoid";
 import {
   type ChangeEventHandler,
   Children,
-  ClipboardEventHandler,
+  type ClipboardEventHandler,
   type ComponentProps,
   createContext,
   type FormEvent,
