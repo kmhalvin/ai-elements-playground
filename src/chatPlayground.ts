@@ -16,6 +16,16 @@ export type AppUIMessage = UIMessage<
             window: number;
             used: number;
         };
+    },
+    {
+        getWeather: {
+            input: string
+            output: {
+                temperature: number
+                condition: string
+                rainProbability: number
+            }
+        }
     }
 >;
 
@@ -81,6 +91,77 @@ const stubSSE = http.post('http://example.com/stream', d => {
                         }
                         break;
                     }
+                    case "weather": {
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "ok"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: ","})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " i'll"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " report"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " the"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " weather"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "."})
+                        await sendEvent(c, {type: "text-end", id: "txt-id-123"})
+
+                        await sendEvent(c, {type: "tool-input-start", toolCallId: "tool-id-123", toolName: "getWeather"})
+                        await sendEvent(c, {type: "tool-input-delta", inputTextDelta: "B", toolCallId: "tool-id-123"})
+                        await sendEvent(c, {type: "tool-input-delta", inputTextDelta: "end", toolCallId: "tool-id-123"})
+                        await sendEvent(c, {type: "tool-input-delta", inputTextDelta: ".", toolCallId: "tool-id-123"})
+                        await sendEvent(c, {type: "tool-input-delta", inputTextDelta: " Hil", toolCallId: "tool-id-123"})
+                        await sendEvent(c, {type: "tool-input-delta", inputTextDelta: "ir", toolCallId: "tool-id-123"})
+                        await sendEvent(c, {type: "tool-input-delta", inputTextDelta: ",", toolCallId: "tool-id-123"})
+                        await sendEvent(c, {
+                            type: "tool-input-delta",
+                            toolCallId: "tool-id-123",
+                            inputTextDelta: " Kecamatan"
+                        })
+                        await sendEvent(c, {type: "tool-input-delta", inputTextDelta: " Tan", toolCallId: "tool-id-123"})
+                        await sendEvent(c, {type: "tool-input-delta", inputTextDelta: "ah", toolCallId: "tool-id-123"})
+                        await sendEvent(c, {type: "tool-input-delta", inputTextDelta: " Ab", toolCallId: "tool-id-123"})
+                        await sendEvent(c, {type: "tool-input-delta", inputTextDelta: "ang", toolCallId: "tool-id-123"})
+                        await sendEvent(c, {type: "tool-input-delta", inputTextDelta: ",", toolCallId: "tool-id-123"})
+                        await sendEvent(c, {type: "tool-input-delta", inputTextDelta: " Kota", toolCallId: "tool-id-123"})
+                        await sendEvent(c, {
+                            type: "tool-input-delta",
+                            toolCallId: "tool-id-123",
+                            inputTextDelta: " Jakarta"
+                        })
+                        await sendEvent(c, {type: "tool-input-delta", inputTextDelta: " P", toolCallId: "tool-id-123"})
+                        await sendEvent(c, {type: "tool-input-delta", inputTextDelta: "usat", toolCallId: "tool-id-123"})
+                        await sendEvent(c, {type: "tool-input-delta", inputTextDelta: ",", toolCallId: "tool-id-123"})
+                        await sendEvent(c, {type: "tool-input-delta", inputTextDelta: " Da", toolCallId: "tool-id-123"})
+                        await sendEvent(c, {type: "tool-input-delta", inputTextDelta: "erah", toolCallId: "tool-id-123"})
+                        await sendEvent(c, {type: "tool-input-delta", inputTextDelta: " Kh", toolCallId: "tool-id-123"})
+                        await sendEvent(c, {type: "tool-input-delta", inputTextDelta: "usus", toolCallId: "tool-id-123"})
+                        await sendEvent(c, {type: "tool-input-delta", inputTextDelta: " Ib", toolCallId: "tool-id-123"})
+                        await sendEvent(c, {type: "tool-input-delta", inputTextDelta: "uk", toolCallId: "tool-id-123"})
+                        await sendEvent(c, {type: "tool-input-delta", inputTextDelta: "ota", toolCallId: "tool-id-123"})
+                        await sendEvent(c, {
+                            type: "tool-input-delta", inputTextDelta: " Jakarta", toolCallId: "tool-id-123"
+                        })
+                        await sendEvent(c, {
+                            type: "tool-input-available",
+                            toolName: "getWeather",
+                            input: "Bend. Hilir, Kecamatan Tanah Abang, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta",
+                            toolCallId: "tool-id-123"
+                        })
+                        await new Promise(resolve => setTimeout(resolve, 3000))
+                        await sendEvent(c, {
+                            type: "tool-output-available", toolCallId: "tool-id-123",
+                            output: {
+                                temperature: 29.2,
+                                condition: "Cloudy",
+                                rainProbability: 16
+                            }
+                        })
+                        await new Promise(resolve => setTimeout(resolve, 1000))
+
+                        await sendEvent(c, {type: "text-start", id: "txt-id-123"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "have"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " a"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " good"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " day"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "!"})
+                        break;
+                    }
                     default: {
                         await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "#"})
                         await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " 👋"})
@@ -108,6 +189,13 @@ const stubSSE = http.post('http://example.com/stream', d => {
                         await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "do"})
                         await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " mer"})
                         await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "maid"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "**"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "\""})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "\n"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "-"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: " \""})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "**"})
+                        await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "weather"})
                         await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "**"})
                         await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "\""})
                         await sendEvent(c, {type: "text-delta", id: "txt-id-123", delta: "\n"})

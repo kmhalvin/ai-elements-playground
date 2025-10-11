@@ -6,11 +6,13 @@ import {Fragment} from "react";
 import {Message, MessageContent} from "@/components/ai-elements/message.tsx";
 import {Response} from "@/components/ai-elements/response.tsx";
 import {Action, Actions} from "@/components/ai-elements/actions.tsx";
-import {CopyIcon, RefreshCcwIcon} from "lucide-react";
+import {CloudRain, CopyIcon, MapPin, RefreshCcwIcon} from "lucide-react";
 import {Reasoning, ReasoningContent, ReasoningTrigger} from "@/components/ai-elements/reasoning.tsx";
 import {Loader} from "@/components/ai-elements/loader.tsx";
 import {useChat} from "@ai-sdk/react";
 import chatPlayground from "@/chatPlayground.ts";
+import {Avatar, AvatarImage} from "@/components/ui/avatar.tsx";
+import WeatherImage from "@/assets/partly_clear.svg"
 
 function AppConversation() {
     const {messages, status, regenerate, error} = useChat({
@@ -83,6 +85,28 @@ function AppConversation() {
                                     <ReasoningContent>{part.text}</ReasoningContent>
                                 </Reasoning>
                             );
+                        case 'tool-getWeather':
+                            return (
+                                <div className='bg-secondary text-foreground p-4 rounded-lg text-sm space-y-4'>
+                                    {part.input && <p className='flex gap-2 items-center'><MapPin/><p>{part.input}</p></p>}
+                                    {part.state != 'output-available' && <Loader/>}
+                                    {part.output && (
+                                        <div className='flex gap-8 items-center'>
+                                            <Avatar className='size-12'>
+                                                <AvatarImage src={WeatherImage}/>
+                                            </Avatar>
+                                            <div className='space-y-4'>
+                                                <h1 className='mt-6 mb-2 font-semibold text-3xl'>{part.output.temperature} °C</h1>
+                                                <p className='font-semibold'>{part.output.condition}</p>
+                                                <p className='flex gap-2 items-center'>
+                                                    <CloudRain/>
+                                                    <p>Rain Probability {part.output.rainProbability}%</p>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )
                         default:
                             return null;
                     }
