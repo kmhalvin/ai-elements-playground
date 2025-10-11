@@ -1,4 +1,4 @@
-import {type ReactNode, useEffect} from "react";
+import {type ReactNode, useImperativeHandle} from "react";
 import {useStickToBottom} from "@/lib/useStickBottomWindow.ts";
 import {StickToBottom} from "use-stick-to-bottom";
 
@@ -10,9 +10,7 @@ function Conversation({ children }: { children: ReactNode }) {
 
     const { scrollRef } = instance
 
-    useEffect(() => {
-        scrollRef(window)
-    }, [scrollRef]);
+    useImperativeHandle(scrollRef, () => window, [])
 
     return <StickToBottom instance={instance}>
         {children}

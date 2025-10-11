@@ -17,7 +17,7 @@ function AppConversation() {
         chat: chatPlayground,
     });
 
-    return <div className="h-full flex-1 p-4">
+    return <div className="h-full p-4">
         {messages.length === 0 ? <ConversationEmptyState/> : messages.map((message, msgIdx) => (
             <div key={message.id}>
                 {message.role === 'assistant' && message.parts.filter((part) => part.type === 'source-url').length > 0 && (
