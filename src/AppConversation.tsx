@@ -48,30 +48,24 @@ function AppConversation() {
                             return (
                                 <Fragment key={`${message.id}-${i}`}>
                                     <Message from={message.role}>
-                                        <MessageContent>
-                                            <Response>
-                                                {part.text}
-                                            </Response>
-                                        </MessageContent>
-                                    </Message>
-                                    {message.role === 'assistant' && msgIdx === messages.length - 1 && (
-                                        <Actions className="mt-2">
-                                            {status === 'ready' && <Action
-                                              onClick={() => regenerate()}
-                                              label="Retry"
-                                            >
-                                              <RefreshCcwIcon className="size-3"/>
-                                            </Action>}
-                                            <Action
+                                        <MessageContent className='px-0'>
+                                            <div className='px-4'>
+                                                <Response>
+                                                    {part.text}
+                                                </Response>
+                                            </div>
+                                            {message.role === 'assistant' && <Actions className="mt-2 border-t px-4">
+                                              <Action
                                                 onClick={() =>
                                                     navigator.clipboard.writeText(part.text)
                                                 }
                                                 label="Copy"
-                                            >
+                                              >
                                                 <CopyIcon className="size-3"/>
-                                            </Action>
-                                        </Actions>
-                                    )}
+                                              </Action>
+                                            </Actions>}
+                                        </MessageContent>
+                                    </Message>
                                 </Fragment>
                             );
                         case 'reasoning':
@@ -88,7 +82,9 @@ function AppConversation() {
                         case 'tool-getWeather':
                             return (
                                 <div className='bg-secondary text-foreground p-4 rounded-lg text-sm space-y-4'>
-                                    {part.input && <p className='flex gap-2 items-center'><MapPin/><p>{part.input}</p></p>}
+                                    {part.input &&
+                                      <p className='flex gap-2 items-center'><MapPin className='size-4'/>
+                                        <p>{part.input}</p></p>}
                                     {part.state != 'output-available' && <Loader/>}
                                     {part.output && (
                                         <div className='flex gap-8 items-center'>
@@ -99,7 +95,7 @@ function AppConversation() {
                                                 <h1 className='mt-6 mb-2 font-semibold text-3xl'>{part.output.temperature} °C</h1>
                                                 <p className='font-semibold'>{part.output.condition}</p>
                                                 <p className='flex gap-2 items-center'>
-                                                    <CloudRain/>
+                                                    <CloudRain className='size-4'/>
                                                     <p>Rain Probability {part.output.rainProbability}%</p>
                                                 </p>
                                             </div>
@@ -111,6 +107,16 @@ function AppConversation() {
                             return null;
                     }
                 })}
+                {message.role === 'assistant' && msgIdx === messages.length - 1 && (
+                    <Actions className="mt-2">
+                        {status === 'ready' && <Action
+                          onClick={() => regenerate()}
+                          label="Retry"
+                        >
+                          <RefreshCcwIcon className="size-3"/>
+                        </Action>}
+                    </Actions>
+                )}
             </div>
         ))}
         {status === 'error' && <Fragment>
